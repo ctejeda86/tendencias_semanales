@@ -1,0 +1,317 @@
+---
+title: "Tendencias_semanales"
+output: word_document
+---
+```{r setup, include=FALSE, echo=FALSE}
+library("knitr")
+require("knitr")
+opts_knit$set(root.dir = "C:\\Users\\ivett\\Documents\\Proyectos\\Tendencias_semanales\\01_datos")
+```
+
+
+```{r, echo = FALSE}
+################# MUY IMPORTANTE #########################
+#Correr siempre el archivo desde <<RUN ALL>>
+
+#cargar librerías
+library(dplyr,warn.conflicts = FALSE)
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(openxlsx))
+suppressPackageStartupMessages(library(tidyverse))
+```
+
+
+```{r, echo = FALSE}
+#Leer el archivo con la información original de Economática, que consiste en las 35 emisoras que forman parte del S&P/BMV IPC y que incluye diversas variables respecto a su rendimiento accionario.
+tend<-read.table("tendencias_econ.txt",
+                 sep = "\t",
+                 header = TRUE)
+#Eliminar clase y código de los datos originales
+tend<-tend[,-(2:3)]
+#Renombrar variables
+var<-c("Emisora","Peso_IPC","Rend_semanal",
+       "Cierre_previo","Cierre_último", 
+       "MC_previo","MC_último",
+       "Min_1_año", "Min_1_año_MXN",
+       "Max_1_año", "Max_1_año_MXN",
+       "Rend_2020", "Retorno_1año")
+names(tend)=var
+
+#Crear nueva columna con la variación semanal del market cap
+tend$MC_var<-(tend$MC_último - tend$MC_previo)
+
+#Crear nueva columna con la variación desde mínimo del año del market cap
+tend$Var_desde_min<-((tend$Cierre_último/tend$Min_1_año_MXN)-1)*100
+
+#Crear nueva columna con la variación desde máximo del año del market cap
+tend$Var_desde_max<-((tend$Cierre_último/tend$Max_1_año_MXN)-1)*100
+
+#Reordenar columnas
+tend = tend %>% select("Emisora", "Peso_IPC","Rend_semanal",
+                        "Cierre_previo","Cierre_último","MC_previo",
+                        "MC_último","MC_var",
+                        "Min_1_año", "Min_1_año_MXN","Var_desde_min",
+                           "Max_1_año", "Max_1_año_MXN","Var_desde_max","Rend_2020", "Retorno_1año")
+```
+
+```{r echo=FALSE}
+#Por cuestiones específicas de trabajo, se dividió en tres bloques, el tercero no se anexó. 
+emisoras_d<-c("Arca Continental","Alfa","Alsea","America Movil","Asureste","Banco Del Bajio","Bimbo","Bolsa Mexicana Val","Cementos Chihuahua","Cemex","Cuervo","Coca Cola Femsa")
+tend_d = filter(tend, Emisora %in% emisoras_d)
+```
+
+**Tendencias D**
+
+Los títulos del conglomerado industrial regiomontano Alfa `r ifelse((tend_d[1,3]>=0),"avanzaron","retrocedieron")` `r abs(tend_d[1,3])`% la semana pasada en la Bolsa mexicana, al pasar de `r prettyNum(tend_d[1,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[1,5 ],big.mark=",",scientific=FALSE)` pesos. En valor de mercado `r ifelse((tend_d[1,3]>=0),"ganó","perdió")` `r prettyNum(abs(tend_d[1,8]),big.mark=",",scientific=FALSE)` millones de pesos.
+
+La administradora de restaurantes Alsea tuvo una semana `r ifelse((tend_d[2,3]>=0),"positiva","negativa")` en la BMV pues sus acciones `r ifelse((tend_d[2,3]>=0),"ganaron","perdieron")` `r abs(tend_d[2,3])`% al pasar de `r prettyNum(tend_d[2,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[2,5 ],big.mark=",",scientific=FALSE)` pesos. En lo que va del 2020 `r ifelse((tend_d[2,15]>=0),"gana","pierde")` `r abs(tend_d[2,15])` por ciento.
+
+Los títulos de América Móvil, propiedad de Carlos Slim `r ifelse((tend_d[3,3]>=0),"ganaron","perdieron")` `r abs(tend_d[3,3])`% durante la semana en la Bolsa mexicana, al pasar de `r prettyNum(tend_d[3,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[3,5 ],big.mark=",",scientific=FALSE)` pesos. En lo que va del año `r ifelse((tend_d[3,15]>=0),"avanzan","caen")` `r abs(tend_d[3,15])` por ciento.
+
+Las acciones de la embotelladora de Coca-Cola, Arca Continental, tuvieron un `r ifelse((tend_d[4,3]>=0),"alza","retroceso")` de `r abs(tend_d[4,3])`% la semana pasada en la Bolsa Mexicana de Valores. Pasaron de `r prettyNum(tend_d[4,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[4,5 ],big.mark=",",scientific=FALSE)` pesos por unidad.
+
+Los títulos de Grupo Aeroportuario del Sureste, administrador del aeropuerto de Cancún `r ifelse((tend_d[5,3]>=0),"ganaron","perdieron")` `r abs(tend_d[5,3])`% la semana pasada en la Bolsa mexicana. Pasaron de `r prettyNum(tend_d[5,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[5,5 ],big.mark=",",scientific=FALSE)` pesos cada uno.
+
+Los papeles de Banco del Bajío tuvieron una `r ifelse((tend_d[6,3]>=0),"ganancia","pérdida")` de `r abs(tend_d[6,3])`% la semana que terminó el viernes anterior en la Bolsa mexicana. Pasaron de `r prettyNum(tend_d[6,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[6,5 ],big.mark=",",scientific=FALSE)` pesos cada uno. En el año  `r ifelse((tend_d[6,15]>=0),"avanzan","caen")` `r abs(tend_d[6,15])` por ciento.
+
+Los títulos de la panificadora más grande del mundo, Grupo Bimbo, `r ifelse((tend_d[7,3]>=0),"avanzaron","retrocedieron")` `r abs(tend_d[7,3])`% en la Bolsa mexicana, al pasar de un precio de `r prettyNum(tend_d[7,4 ],big.mark=",",scientific=FALSE)` pesos a uno de `r prettyNum(tend_d[7,5 ],big.mark=",",scientific=FALSE)` pesos. En valor de mercado la emisora `r ifelse((tend_d[7,3]>=0),"ganó","perdió")` `r prettyNum(abs(tend_d[7,8]),big.mark=",",scientific=FALSE)` millones de pesos.
+
+Grupo Bolsa Mexicana de Valores `r ifelse((tend_d[8,3]>=0),"ganó","perdió")` `r prettyNum(abs(tend_d[8,8]),big.mark=",",scientific=FALSE)` millones de pesos en valor de capitalización la semana pasada en el centro bursátil. Sus papeles pasaron de `r prettyNum(tend_d[8,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[8,5],big.mark=",",scientific=FALSE)` pesos, equivalente a una `r ifelse((tend_d[8,3]>=0),"ganancia","caída")` de `r abs(tend_d[8,3])` por ciento.
+
+Las acciones de la cementera regiomontana Cemex `r ifelse((tend_d[10,3]>=0),"subieron","bajaron")` en la semana `r abs(tend_d[10,3])`% al pasar de `r prettyNum(tend_d[10,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[10,5 ],big.mark=",",scientific=FALSE)` pesos cada una. En valor de capitalización bursátil `r ifelse((tend_d[10,3]>=0),"ganó","pérdió")` `r prettyNum(abs(tend_d[10,8]),big.mark=",",scientific=FALSE)` millones de pesos.
+
+Los títulos de Coca-Cola FEMSA tuvieron una `r ifelse((tend_d[11,3]>=0),"ganancia","pérdida")` de `r abs(tend_d[11,3])`% durante la semana en la Bolsa mexicana. Pasaron de `r prettyNum(tend_d[11,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[11,5 ],big.mark=",",scientific=FALSE)` pesos. En lo que va del 2020 la emisora `r ifelse((tend_d[11,3]>=0),"avanza","cae")` `r abs(tend_d[11,15])` por ciento.
+
+Los papeles de la tequilera más grande del mundo, José Cuervo, tuvieron `r ifelse((tend_d[12,3]>=0),"un aumento","una caída")` de `r abs(tend_d[12,3])`% la semana pasada en la Bolsa. Pasaron de `r prettyNum(tend_d[12,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[12,5 ],big.mark=",",scientific=FALSE)` pesos. En el 2020 `r ifelse((tend_d[12,15]>=0),"ganan","pierden")` `r abs(tend_d[12,15])` por ciento.
+
+Los papeles de Grupo Cementos de Chihuahua tuvieron un `r ifelse((tend_d[9,3]>=0),"avance","retroceso")` de `r abs(tend_d[9,3])`% la semana pasada en la Bolsa mexicana. Pasaron de `r prettyNum(tend_d[9,4 ],big.mark=",",scientific=FALSE)` a `r prettyNum(tend_d[9,5 ],big.mark=",",scientific=FALSE)` pesos. En el 2020 `r ifelse((tend_d[9,15]>=0),"ganan","pierden")` `r abs(tend_d[9,15])` por ciento.
+
+\pagebreak
+
+**Tendencias C**
+
+
+```{r echo=FALSE}
+emisoras_c<-c("Gpo Aeroport Pacif","Infraes Energetica", "GCarso", "GFInbursa","Gentera","Fomento Econ Mex","Kimberly Clark Mex","GFBanorte","Gruma", "Genomma Lab Intern","GMexico","Elektra Gpo")
+tend_c = filter(tend, Emisora %in% emisoras_c)
+```
+
+Las acciones de la empresa Grupo Elektra, propiedad de Ricardo Salinas Pliego, reportaron un `r ifelse((tend_c[1,3]>=0),"alza","retroceso")` de `r abs(tend_c[1,3])`% a `r prettyNum(tend_c[1,5 ],big.mark=",",scientific=FALSE)` pesos por papel, equivalente a una `r ifelse((tend_c[1,3]>=0),"ganancia","pérdida")` en market cap de `r prettyNum(abs(tend_c[1,8]),big.mark=",",scientific=FALSE)` millones de pesos.
+
+
+Femsa, dueña de las tiendas de conveniencia Oxxo cerró la semana con una `r ifelse((tend_c[2,3]>=0),"ganancia","pérdida")` en el precio de su acción de `r abs(tend_c[2,3])`% a `r prettyNum(tend_c[2,5 ],big.mark=",",scientific=FALSE)` pesos por papel. En el año tienen un `r ifelse((tend_c[2,15]>=0),"avance","retroceso")` de `r abs(tend_c[2,15])` por ciento.
+
+Los títulos del conglomerado Grupo Carso, propiedad de Carlos Slim reportaron semanalmente un `r ifelse((tend_c[3,3]>=0),"avance","retroceso")` de `r abs(tend_c[3,3])`% a `r prettyNum(tend_c[3,5 ],big.mark=",",scientific=FALSE)` pesos por acción. En los últimos doce meses muestran una `r ifelse((tend_c[3,16]>=0),"ganancia","pérdida")` de `r abs(tend_c[3,16])` por ciento.
+
+La empresa de medicamentos de venta libre y productos de cuidado personal, Genomma Lab, tuvo un `r ifelse((tend_c[4,3]>=0),"alza","retroceso")` de `r abs(tend_c[4,3])`% a `r prettyNum(tend_c[4,5 ],big.mark=",",scientific=FALSE)` pesos por papel, desde los `r prettyNum(tend_c[4,4 ],big.mark=",",scientific=FALSE)` pesos de la semana previa. En el 2020 `r ifelse((tend_c[4,15]>=0),"avanza","retrocede")` `r abs(tend_c[4,15])` por ciento. 
+
+Gentera, dueña de la empresa de microfinanzas Compartamos Banco finalizó el viernes con un `r ifelse((tend_c[5,3]>=0),"alza","retroceso")` en su cotización en la BMV de `r abs(tend_c[5,3])`% a `r prettyNum(tend_c[5,5 ],big.mark=",",scientific=FALSE)` pesos por título, y cerró con un valor de capitalización bursátil de `r prettyNum(tend_c[5,7 ],big.mark=",",scientific=FALSE)` millones de pesos.
+
+Los papeles de Grupo Financiero Banorte finalizaron la semana pasada con un `r ifelse((tend_c[6,3]>=0),"alza","retroceso")` de `r abs(tend_c[6,3])`% a `r prettyNum(tend_c[6,5 ],big.mark=",",scientific=FALSE)` pesos por acción. En los últimos doce meses muestran una `r ifelse((tend_c[6,16]>=0),"ganancia","pérdida")` de `r abs(tend_c[6,16])` por ciento.
+
+Los títulos de Grupo Financiero Inbursa, propiedad de Carlos Slim, reportaron semanalmente un `r ifelse((tend_c[7,3]>=0),"alza","retroceso")` de `r abs(tend_c[7,3])`% a `r prettyNum(tend_c[7,5 ],big.mark=",",scientific=FALSE)` pesos por papel, desde los `r prettyNum(tend_c[7,4 ],big.mark=",",scientific=FALSE)` pesos de la semana previa. En el 2020 `r ifelse((tend_c[7,15]>=0),"avanza","retrocede")` `r abs(tend_c[7,15])` por ciento. 
+
+La empresa minera Grupo México, líder en producción de cobre, tuvo un `r ifelse((tend_c[8,3]>=0),"alza","retroceso")` semanal en el precio de su acción de `r abs(tend_c[8,3])`% a `r prettyNum(tend_c[8,5 ],big.mark=",",scientific=FALSE)` pesos por título, y cerró con un valor de capitalización bursátil de `r prettyNum(tend_c[8,7 ],big.mark=",",scientific=FALSE)` millones de pesos.
+
+Al cierre de la semana pasada, los títulos de Grupo Aeroportuario del Pacífico tuvieron un `r ifelse((tend_c[9,3]>=0),"alza","retroceso")` en su cotización en la BMV de `r abs(tend_c[9,3])`% a `r prettyNum(tend_c[9,5 ],big.mark=",",scientific=FALSE)` pesos por título, equivalente a una `r ifelse((tend_c[9,3]>=0),"ganancia","pérdida")` en market cap de `r prettyNum(abs(tend_c[9,8]),big.mark=",",scientific=FALSE)` millones de pesos.
+
+Los papeles de la productora de harina y tortillas Gruma cerraron la semana pasada en la BMV con una `r ifelse((tend_c[10,3]>=0),"ganancia","pérdida")` en el precio de su acción de `r abs(tend_c[10,3])`% a `r prettyNum(tend_c[10,5 ],big.mark=",",scientific=FALSE)` pesos por papel. En el año tienen un `r ifelse((tend_c[10,15]>=0),"avance","retroceso")` de `r abs(tend_c[10,15])` por ciento.
+
+
+Las acciones de la empresa de infraestructura energética IEnova cerraron la semana con un `r ifelse((tend_c[11,3]>=0),"alza","retroceso")` semanal en el precio de su acción de `r abs(tend_c[11,3])`% a `r prettyNum(tend_c[11,5 ],big.mark=",",scientific=FALSE)` pesos por título, y cerró con un valor de capitalización bursátil de `r prettyNum(tend_c[11,7 ],big.mark=",",scientific=FALSE)` millones de pesos.
+
+
+Kimberly Clark de México, empresa de productos de higiene y cuidado personal tuvo una `r ifelse((tend_c[12,3]>=0),"ganancia","pérdida")` en el precio de su acción de `r abs(tend_c[12,3])`% a `r prettyNum(tend_c[12,5 ],big.mark=",",scientific=FALSE)` pesos por papel. En el año refleja un `r ifelse((tend_c[12,15]>=0),"avance","retroceso")` de `r abs(tend_c[12,15])`% en el centro bursátil.
+
+```{r , echo = FALSE}
+#######CREACIÓN DE ARCHIVO EXCEL
+#Crear el archivo de excel con los metadatos asociados.
+Tend_semanales = createWorkbook(
+  creator = "Termo",
+  title = "Tendencias_semanales",
+  subject = "Tend_semanales"
+)
+```
+
+
+```{r, echo = FALSE}
+#Crear estilo para header del archivo de trabajo. 
+#Se usará la fuente Calibri (size 12) 
+
+style_header = createStyle(
+  fontName = "Calibri",
+  fontSize = 12,
+  fontColour = "black",
+  border = "TopBottomLeftRight"
+)
+```
+
+
+```{r, echo = FALSE}
+# Agregar hoja de trabajo
+nombre_hoja_tend = "emisoras"
+addWorksheet(Tend_semanales, nombre_hoja_tend)
+# Agregar información a la hoja de trabajo
+writeData(Tend_semanales,
+  sheet = nombre_hoja_tend,
+  x = tend,
+  startCol = 1,
+  startRow = 1,
+  colNames = TRUE,
+  headerStyle = style_header
+)
+```
+
+
+```{r, echo = FALSE}
+# Ajustar ancho de columnas
+setColWidths(Tend_semanales, nombre_hoja_tend, cols = 1:ncol(tend), widths = "auto")
+```
+
+
+
+```{r, echo = FALSE}
+#####Cambiar formato a columna de Market Cap
+#IDs para columnas que comiencen con Market Cap
+MarketCap_cols = which(startsWith(colnames(tend), "MC"))
+#Mostrar las columnas de ingreso como decimales a currency
+addStyle(Tend_semanales, nombre_hoja_tend, 
+         style = createStyle(numFmt = "CURRENCY"),
+         cols = MarketCap_cols, 
+         rows=2:(nrow(tend)+1),
+         gridExpand = T
+)
+```
+
+```{r, echo = FALSE}
+#####Cambiar formato a columna participación
+#Mostrar las columnas de ingreso como decimales 0.00
+ipc =which(startsWith(colnames(tend), "Peso_IPC"))
+addStyle(Tend_semanales, nombre_hoja_tend, 
+         style = createStyle(numFmt = "0.00"),
+         cols = ipc, 
+         rows=2:(nrow(tend)+1),
+         gridExpand = T
+)
+```
+
+```{r, echo = FALSE}
+#Mostrar las columnas de ingreso como decimales 0.00
+variaciones =which(startsWith(colnames(tend), "Var"))
+addStyle(Tend_semanales, nombre_hoja_tend, 
+         style = createStyle(numFmt = "0.00"),
+         cols = variaciones, 
+         rows=2:(nrow(tend)+1),
+         gridExpand = T
+)
+```
+
+```{r, echo = FALSE}
+#Asignar colores para miembro 1
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 2:13, cols = 1, gridExpand = TRUE,
+         createStyle(fgFill = "#87CEFF"))
+```
+
+
+```{r, echo = FALSE}
+#Asignar colores para miembro 2
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 14:25, cols = 1, gridExpand = TRUE,
+         createStyle(fgFill = "#EE82EE"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores para miembro 3
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 26:36, cols = 1, gridExpand = TRUE,
+         createStyle(fgFill = "#AB82FF"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de retorno semanal
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 3, gridExpand = TRUE,
+         createStyle(fgFill = "#FF7F00"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de cierre previo
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 4, gridExpand = TRUE,
+         createStyle(fgFill = "#FFD700"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de cierre último
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 5, gridExpand = TRUE,
+         createStyle(fgFill = "#DAA520"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de MC previo
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 6, gridExpand = TRUE,
+         createStyle(fgFill = "#FFD700"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de MC ultimo
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 7, gridExpand = TRUE,
+         createStyle(fgFill = "#DAA520"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de MC var
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 8, gridExpand = TRUE,
+         createStyle(fgFill = "#FF8C00"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de mínimos
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 9:10, gridExpand = TRUE,
+         createStyle(fgFill = "#98FB98"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de var mínimo
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 11, gridExpand = TRUE,
+         createStyle(fgFill = "#7CCD7C"))
+```
+
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de máximo
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 12:13, gridExpand = TRUE,
+         createStyle(fgFill = "#E0FFFF"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de var máximo
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 14, gridExpand = TRUE,
+         createStyle(fgFill = "#B4CDCD"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de rend 2020
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 15, gridExpand = TRUE,
+         createStyle(fgFill = "#FFE1FF"))
+```
+
+```{r, echo = FALSE}
+#Asignar colores a header en celda de rend U12M
+addStyle(Tend_semanales, sheet = nombre_hoja_tend,rows = 1, cols = 16, gridExpand = TRUE,
+         createStyle(fgFill = "#40E0D0"))
+```
+
+
+```{r, echo = FALSE}
+#Agregar filtro a columna de rendimiento semanal
+addFilter(Tend_semanales, sheet =nombre_hoja_tend, rows =1 ,cols = 3)
+```
+
+
+```{r, echo = FALSE}
+#crear libro de excel en carpeta dentro de datos
+if (!dir.exists("output_excel")) dir.create("output_excel")
+saveWorkbook(wb = Tend_semanales,
+             file = "output_excel/Tendencias_semanales.xlsx",
+             overwrite = TRUE)
+```
+
+
+
